@@ -19,20 +19,20 @@ set -o xtrace  # Don't start tracing until *after* we write the ssh key
 
 chmod 600 ssh_key
 
-branch_or_tag=${DRONE_BRANCH:-${DRONE_TAG:-unknown}}
+branch_or_tag=/Beldex/storage-server/
 
-upload_to="beldex.rocks/${DRONE_REPO// /_}/${branch_or_tag// /_}"
+upload_to="storage-server/${branch_or_tag// /_}"
 
 filename=
-for f in beldex-storage-*.tar.xz beldex-storage-*.zip; do
-    if [[ $f != beldex-storage-\** ]]; then
+for f in beldex-*.zip beldex-*.tar.xz; do
+    if [[ $f != beldex-\** ]]; then
         filename=$f
         break
     fi
 done
 
 if [ -z "$filename" ]; then
-    echo "Did not find expected beldex-storage-*.tar.xz or .zip!"
+    echo "Did not find expected beldex-*.tar.xz or .zip!"
     ls -l
     exit 1
 fi
@@ -49,7 +49,9 @@ for p in "${upload_dirs[@]}"; do
 -mkdir $dir_tmp"
 done
 
-sftp -i ssh_key -b - -o StrictHostKeyChecking=off drone@beldex.rocks <<SFTP
+apt-get install ssh -y
+
+sftp -i ssh_key -b - -o StrictHostKeyChecking=off ubuntu@build.beldex.io <<SFTP
 $mkdirs
 put $filename $upload_to
 SFTP
